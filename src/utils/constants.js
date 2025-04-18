@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:8080";
+export const BASE_URL = "https://dev-tinder-backend-m7q8.onrender.com";
 export const LOCAL_URL = "http://localhost:8080";
 export const HOISTING_URL = "";
 export const PROFILE_URL =
