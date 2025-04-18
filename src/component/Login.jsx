@@ -40,6 +40,7 @@ const Login = () => {
         }, 3000);
         return;
       }
+      console.log("Signup Data:", data); // Log the data before sending it
       const res = await axios.post(BASE_URL + "/signup", data, {
         withCredentials: true,
       });
