@@ -6,30 +6,59 @@ import { addFeed } from "../utils/feedSlice";
 import UserCard from "./UserCard";
 import Loading from "./Loading";
 
+// 💡 Guest Mode Preview Cards (Jab user logged in nahi hoga tab yeh dikhenge)
+const GUEST_MOCK_PROFILES = [
+  {
+    _id: "guest_demo_1",
+    firstName: "Adarsh",
+    lastName: "Tiwari",
+    age: 23,
+    gender: "Male",
+    about: "Full Stack Developer building MERN applications & scalable cloud infrastructure. Open for collaborations!",
+    isPremium: true,
+    photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop",
+    skills: ["React", "Node.js", "MongoDB", "Express", "Tailwind CSS"]
+  },
+  {
+    _id: "guest_demo_2",
+    firstName: "Priya",
+    lastName: "Sharma",
+    age: 24,
+    gender: "Female",
+    about: "Frontend Engineer passionate about UI/UX, animations, and clean React codebases.",
+    isPremium: false,
+    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1000&auto=format&fit=crop",
+    skills: ["React", "TypeScript", "Redux Toolkit", "Next.js"]
+  },
+  {
+    _id: "guest_demo_3",
+    firstName: "Rahul",
+    lastName: "Verma",
+    age: 25,
+    gender: "Male",
+    about: "Backend Lead specializing in microservices, System Design, Redis caching, and Docker.",
+    isPremium: true,
+    photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop",
+    skills: ["Node.js", "System Design", "AWS", "Docker", "PostgreSQL"]
+  }
+];
+
 const Feed = () => {
   const dispatch = useDispatch();
   const feed = useSelector((store) => store.feed?.feed);
   const user = useSelector((store) => store.user?.user);
-  const [guestFeed, setGuestFeed] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const getFeed = async () => {
     try {
       setLoading(true);
+      // Agar user logged in hai -> Original backend /feed API call karein
       if (user) {
         const res = await axios.get(BASE_URL + "/feed", { withCredentials: true });
         dispatch(addFeed(res?.data?.data));
-      } else {
-        try {
-          const publicRes = await axios.get(BASE_URL + "/feed/public");
-          setGuestFeed(publicRes?.data?.data || []);
-        } catch {
-          const fallbackRes = await axios.get(BASE_URL + "/feed");
-          setGuestFeed(fallbackRes?.data?.data || []);
-        }
       }
     } catch (error) {
-      console.log("Error loading feed:", error);
+      console.log("Error fetching feed from backend:", error);
     } finally {
       setLoading(false);
     }
@@ -41,13 +70,14 @@ const Feed = () => {
 
   if (loading) return <Loading />;
 
-  const displayFeed = user ? feed : guestFeed;
+  // User Logged in hai toh Redux wala feed dikhayega, Guest hai toh MOCK_PROFILES
+  const displayFeed = user ? feed : GUEST_MOCK_PROFILES;
 
-  if (!displayFeed || displayFeed.length === 0) {
+  if (user && (!feed || feed.length === 0)) {
     return (
       <div className="text-center py-20 px-4">
-        <h3 className="text-2xl font-bold text-white mb-2">No More Developer Profiles!</h3>
-        <p className="text-slate-400">Check back later for new connections.</p>
+        <h3 className="text-2xl font-bold text-white mb-2">No More Profiles Available!</h3>
+        <p className="text-slate-400">You've reached the end of the feed. Check back later!</p>
       </div>
     );
   }
@@ -55,12 +85,12 @@ const Feed = () => {
   return (
     <div className="flex flex-col items-center w-full my-4">
       {!user && (
-        <div className="bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs md:text-sm font-medium px-4 py-2 rounded-full mb-4 text-center">
-          ✨ You are browsing in Guest Mode — Click Interested to Sign In
+        <div className="bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs md:text-sm font-medium px-4 py-2 rounded-full mb-6 text-center shadow-lg shadow-sky-500/5">
+          ✨ Browsing in Guest Mode — Click "Interested" to Sign In
         </div>
       )}
       
-      {displayFeed.map((data) => (
+      {displayFeed && displayFeed.map((data) => (
         <UserCard key={data._id} user={data} />
       ))}
     </div>
