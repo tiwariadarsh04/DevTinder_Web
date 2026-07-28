@@ -6,7 +6,7 @@ import { addFeed } from "../utils/feedSlice";
 import UserCard from "./UserCard";
 import Loading from "./Loading";
 
-// 💡 Guest Mode Preview Cards (Jab user logged in nahi hoga tab yeh dikhenge)
+// Sample Profiles shown exclusively during Guest Mode
 const GUEST_MOCK_PROFILES = [
   {
     _id: "guest_demo_1",
@@ -52,7 +52,7 @@ const Feed = () => {
   const getFeed = async () => {
     try {
       setLoading(true);
-      // Agar user logged in hai -> Original backend /feed API call karein
+      // ONLY fetch from backend if user is authenticated
       if (user) {
         const res = await axios.get(BASE_URL + "/feed", { withCredentials: true });
         dispatch(addFeed(res?.data?.data));
@@ -70,7 +70,7 @@ const Feed = () => {
 
   if (loading) return <Loading />;
 
-  // User Logged in hai toh Redux wala feed dikhayega, Guest hai toh MOCK_PROFILES
+  // Render Redux feed for logged-in users, MOCK_PROFILES for guests
   const displayFeed = user ? feed : GUEST_MOCK_PROFILES;
 
   if (user && (!feed || feed.length === 0)) {
