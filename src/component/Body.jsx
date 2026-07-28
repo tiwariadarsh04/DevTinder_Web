@@ -1,34 +1,31 @@
 import React, { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
-import { Outlet } from "react-router-dom";
 import Footer from "./Footer";
-import { useDispatch, useSelector } from "react-redux";
-import { addUser } from "../utils/userSlice";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
+import { useDispatch, useSelector } from "react-redux";
+import { addUser } from "../utils/userSlice";
 import Loading from "./Loading";
 
 const Body = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((store) => store.user?.user);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // 👈 Loading State Add ki
 
   const fetchUser = async () => {
     try {
-      if (user) {
-        setLoading(false);
-        return;
-      }
       const res = await axios.get(BASE_URL + "/profile/view", {
         withCredentials: true,
       });
-      if (res.status === 200 && res.data) {
-        dispatch(addUser(res.data));
-      }
-    } catch (error) {
-      console.log("Guest Mode Active: No session found.");
+      // User logged in hai -> Redux me update karo
+      dispatch(addUser(res.data));
+    } catch (err) {
+      console.log("Guest Mode Active: No active session");
+      // Agar 401 aaya toh app crash mat hone do, guest mode rehne do
     } finally {
-      setLoading(false);
+      setLoading(false); // 👈 Profile check hone ke baad loading stop
     }
   };
 
@@ -36,14 +33,17 @@ const Body = () => {
     fetchUser();
   }, []);
 
-  if (loading) return <Loading />;
+  // 👈 Reload hone par jab tak auth re-verify na ho, Spinner dikhao (White screen nahi)
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-sky-500 selection:text-white font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-white">
       <NavBar />
-      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 py-6">
+      <div className="flex-1">
         <Outlet />
-      </main>
+      </div>
       <Footer />
     </div>
   );
