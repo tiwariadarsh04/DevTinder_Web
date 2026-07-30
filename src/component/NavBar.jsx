@@ -6,7 +6,10 @@ import { BASE_URL, PROFILE_URL } from "../utils/constants";
 import { removeUser } from "../utils/userSlice";
 
 const NavBar = () => {
-  const isUser = useSelector((store) => store.user?.user);
+  // Safe extraction for Redux store during page reloads
+  const storeUser = useSelector((store) => store.user);
+  const isUser = storeUser?.user || (storeUser?._id ? storeUser : null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -17,10 +20,11 @@ const NavBar = () => {
         {},
         { withCredentials: true }
       );
-      dispatch(removeUser());
-      navigate("/login");
     } catch (error) {
       console.log("Error logging out:", error);
+    } finally {
+      dispatch(removeUser());
+      navigate("/login");
     }
   };
 
@@ -37,7 +41,7 @@ const NavBar = () => {
         {isUser ? (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-300 hidden md:block">
-              Welcome, <span className="text-white font-semibold">{isUser?.firstName}</span>
+              Welcome, <span className="text-white font-semibold">{isUser?.firstName || "Developer"}</span>
             </span>
 
             <div className="dropdown dropdown-end">
