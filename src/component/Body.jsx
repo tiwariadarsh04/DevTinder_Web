@@ -10,22 +10,22 @@ import Loading from "./Loading";
 
 const Body = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const user = useSelector((store) => store.user?.user);
-  const [loading, setLoading] = useState(true); // 👈 Loading State Add ki
+  const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     try {
       const res = await axios.get(BASE_URL + "/profile/view", {
         withCredentials: true,
       });
-      // User logged in hai -> Redux me update karo
-      dispatch(addUser(res.data));
+      // Handle both { data: user } or direct user response
+      const userData = res.data?.data || res.data;
+      if (userData) {
+        dispatch(addUser(userData));
+      }
     } catch (err) {
       console.log("Guest Mode Active: No active session");
-      // Agar 401 aaya toh app crash mat hone do, guest mode rehne do
     } finally {
-      setLoading(false); // 👈 Profile check hone ke baad loading stop
+      setLoading(false);
     }
   };
 
@@ -33,7 +33,6 @@ const Body = () => {
     fetchUser();
   }, []);
 
-  // 👈 Reload hone par jab tak auth re-verify na ho, Spinner dikhao (White screen nahi)
   if (loading) {
     return <Loading />;
   }

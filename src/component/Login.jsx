@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { BASE_URL } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
-import checkValidData from "../utils/validation";
 
 const Login = () => {
   const [firstName, setFirstName] = useState("");
@@ -15,7 +14,7 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [otp, setOtp] = useState("");
   const [showOtpField, setShowOtpField] = useState(false);
-  const [warnning, setWarnning] = useState(false);
+  const [warning, setWarning] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,25 +22,18 @@ const Login = () => {
   const handleSignup = async () => {
     try {
       const data = { firstName, lastName, emailId: email, password };
-      const checkEmailPassword = checkValidData(email, password);
-      
-      if (checkEmailPassword) {
-        setError(checkEmailPassword);
-        setWarnning(true);
-        setTimeout(() => setWarnning(false), 3000);
-        return;
+      const res = await axios.post(BASE_URL + "/signup", data, { withCredentials: true });
+      if (res.status === 200 || res.status === 201) {
+        setShowOtpField(true);
       }
-
-      await axios.post(BASE_URL + "/signup", data, { withCredentials: true });
-      setShowOtpField(true);
-    } catch (error) {
-      const backendError = 
-        error.response?.data?.error?.message || 
-        error.response?.data?.message || 
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
         "Signup failed. Please check details.";
       setError(backendError);
-      setWarnning(true);
-      setTimeout(() => setWarnning(false), 4000);
+      setWarning(true);
+      setTimeout(() => setWarning(false), 5000);
     }
   };
 
@@ -54,10 +46,14 @@ const Login = () => {
       if (res.status === 200) {
         setShowOtpField(true);
       }
-    } catch (error) {
-      setError(error.response?.data || "Invalid Credentials");
-      setWarnning(true);
-      setTimeout(() => setWarnning(false), 3000);
+    } catch (err) {
+      const loginErr =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Invalid Credentials";
+      setError(loginErr);
+      setWarning(true);
+      setTimeout(() => setWarning(false), 5000);
     }
   };
 
@@ -69,12 +65,13 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      dispatch(addUser(res.data?.data || res.data));
+      const userData = res.data?.data || res.data;
+      dispatch(addUser(userData));
       navigate("/");
-    } catch (error) {
-      setError(error?.response?.data?.error || "Invalid OTP");
-      setWarnning(true);
-      setTimeout(() => setWarnning(false), 3000);
+    } catch (err) {
+      setError(err?.response?.data?.error || "Invalid OTP");
+      setWarning(true);
+      setTimeout(() => setWarning(false), 4000);
     }
   };
 
@@ -90,7 +87,7 @@ const Login = () => {
           </p>
         </div>
 
-        {warnning && (
+        {warning && (
           <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold p-3 rounded-xl mb-4 text-center">
             ⚠️ {error}
           </div>
